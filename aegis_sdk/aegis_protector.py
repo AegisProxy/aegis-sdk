@@ -11,7 +11,6 @@ class AegisProtector:
         """Initialize the AegisProtector with empty mappings."""
         self._mapping: Dict[str, str] = {}
         self._reverse_mapping: Dict[str, str] = {}
-        self._counter = 0
 
     def redact(self, text: str, entity_type: Optional[str] = None) -> str:
         """
