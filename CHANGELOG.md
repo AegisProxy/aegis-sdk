@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- CI: pin `pytest<9` (pytest 9 requires Python ≥3.10) and require **Python ≥3.9** so `poetry-core` 2.x can build wheels; GitHub Actions matrix uses 3.9 / 3.11 / 3.12.
+
 ## [0.1.1] - 2026-03-30
 
 ### Added

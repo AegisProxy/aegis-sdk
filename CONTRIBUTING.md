@@ -19,7 +19,7 @@ npm test
 
 ### Python
 
-Use Python 3.8+ and install the package in editable mode with dev dependencies:
+Use Python 3.9+ (required by `poetry-core` 2.x build backend) and install the package in editable mode with dev dependencies:
 
 ```bash
 python3 -m pip install -e ".[dev]"

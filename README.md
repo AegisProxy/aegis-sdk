@@ -73,6 +73,8 @@ This is often described as **end-to-end from the database’s perspective** (the
 
 ### Python
 
+Requires **Python 3.9+** (build uses `poetry-core` 2.x).
+
 Using Poetry:
 ```bash
 poetry add aegis-sdk
