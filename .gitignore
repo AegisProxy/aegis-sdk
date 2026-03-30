@@ -23,6 +23,7 @@ MANIFEST
 .pytest_cache/
 .coverage
 htmlcov/
+coverage/
 *.cover
 .hypothesis/
 .tox/

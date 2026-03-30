@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Stop tracking **Jest `coverage/`** output (HTML/CSS/JS reports); add to `.gitignore` so GitHub language stats reflect the SDK, not generated reports.
 - CI: GitHub Actions use **Node 24** for action runtimes (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`, `actions/checkout@v6`, `actions/setup-node@v6`, `actions/setup-python@v6`); JS job runs tests on **Node 22**.
 - CI: pin `pytest<9` (pytest 9 requires Python ≥3.10) and require **Python ≥3.9** so `poetry-core` 2.x can build wheels; GitHub Actions matrix uses 3.9 / 3.11 / 3.12.
 
