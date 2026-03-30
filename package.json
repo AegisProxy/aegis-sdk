@@ -1,12 +1,12 @@
 {
   "name": "aegis-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A universal Python and JavaScript library for building privacy-preserving AI applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run build"
@@ -36,6 +36,11 @@
     "typescript": "^5.9.3"
   },
   "files": [
-    "dist/**/*"
-  ]
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
 }

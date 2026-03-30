@@ -29,8 +29,17 @@ This folder shows one way to store **encrypted** `AegisProtector` state so worke
 
 You must establish a Supabase session (e.g. sign in via your app) so `auth.getUser()` returns a user and RLS passes.
 
+Required environment variables:
+
+| Variable | Purpose |
+|----------|---------|
+| `SUPABASE_URL` | Project URL |
+| `SUPABASE_ANON_KEY` | Anon key (with user session for RLS) |
+| `AEGIS_EXAMPLE_ENCRYPTION_PASSWORD` | Demo passphrase for encrypting the mapping blob (never hard-code in real apps) |
+
 ```bash
 export SUPABASE_URL="https://YOUR_PROJECT.supabase.co"
 export SUPABASE_ANON_KEY="your-anon-key"
-npx tsx demo.ts
+export AEGIS_EXAMPLE_ENCRYPTION_PASSWORD="long-unique-demo-secret"
+npm run demo
 ```

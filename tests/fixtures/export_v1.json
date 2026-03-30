@@ -1,0 +1,15 @@
+{
+  "v": 1,
+  "entries": [
+    {
+      "session_id": "fixture-sess",
+      "text": "cross-language-fixture-value",
+      "placeholder": "[REDACTED_EMAIL_f6c1fcfc]"
+    },
+    {
+      "session_id": null,
+      "text": "second-value",
+      "placeholder": "[REDACTED_4bebc9af]"
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 
 A universal Python and JavaScript/TypeScript library for building privacy-preserving AI applications. Embed Aegis security directly into your app.
 
+[Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
+
 ## Features
 
 - **Dual-Language Support**: Available for both Python and TypeScript/JavaScript
@@ -10,6 +12,7 @@ A universal Python and JavaScript/TypeScript library for building privacy-preser
 - **Optional session scope**: Pass a session id so parallel chats/requests stay isolated in one `AegisProtector` instance
 - **Integrity Validation**: Built-in validation to ensure mapping consistency
 - **Export / import**: Serialize mappings (v1 JSON) for encrypted storage or multi-worker reload
+- **Thread-safe (Python)**: One `AegisProtector` instance can be shared across threads
 - **Type Safety**: Full TypeScript support with type definitions
 
 ## Guarantees, concurrency, and sessions
@@ -21,8 +24,11 @@ A universal Python and JavaScript/TypeScript library for building privacy-preser
 
 **Threading and async (Python)**
 
-- The default implementation is **not** thread-safe. If multiple threads use the **same** `AegisProtector`, synchronize access (e.g. one lock around `redact` / `unredact`) or use **one instance per task / request**.
-- Alternatively, use **one process per flow** or a **single worker** that owns redaction.
+- `AegisProtector` is **thread-safe** in Python (internal `RLock`). Multiple threads may call `redact`, `unredact`, `export_state`, `import_state`, and `validate_integrity` on the **same** instance concurrently.
+
+**Concurrency (JavaScript / TypeScript)**
+
+- In typical **Node.js** or **browser** runtimes, JavaScript runs on a **single** event-loop thread; parallel **Workers** do not share memory—use **one `AegisProtector` per worker** or persist state (export + encrypted storage) and load per worker.
 
 **Many workers or machines**
 
@@ -274,11 +280,14 @@ assert protector.unredact(a) == protector.unredact(b) == "Alice"
 
 ## Development
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for fixture regeneration, PR expectations, and full setup.
+
 ### Python Development
 
 ```bash
 # Install dependencies
 poetry install
+# Or: python3 -m pip install -e ".[dev]"
 
 # Run tests
 poetry run pytest tests/ -v
@@ -306,13 +315,46 @@ npm run test:coverage
 npm run test:watch
 ```
 
+## Publishing
+
+Versions are tracked in `package.json`, `pyproject.toml` (`[project]` and `[tool.poetry]`), and `aegis_sdk.__version__` / `version` export in TypeScript—keep them aligned when releasing. Document changes in [CHANGELOG.md](CHANGELOG.md).
+
+### npm
+
+```bash
+npm run build
+npm pack   # optional: inspect tarball
+npm publish --access public
+```
+
+Ensure you are logged in (`npm whoami`) and the version was bumped. `prepublishOnly` runs `npm run build`.
+
+### PyPI (pip / Poetry)
+
+Using Poetry:
+
+```bash
+poetry build
+poetry publish
+```
+
+Or build with PEP 517 and upload with Twine:
+
+```bash
+python3 -m pip install build twine
+python3 -m build
+twine upload dist/*
+```
+
+Use [TestPyPI](https://packaging.python.org/en/latest/guides/using-testpypi/) first if you want a dry run.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md). Pull requests and cross-language tests (`tests/fixtures/export_v1.json`) help keep Python and TypeScript compatible.
 
 ## Support
 

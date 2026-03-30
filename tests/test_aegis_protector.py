@@ -148,6 +148,21 @@ class TestAegisProtector(unittest.TestCase):
         ph = other.redact("a", session_id="s1")
         self.assertEqual(other.unredact(ph), "a")
 
+    def test_import_state_invalid_leaves_empty(self):
+        """Failed import (after lock entered) leaves no partial mappings."""
+        with self.assertRaises(ValueError):
+            self.protector.import_state(
+                {
+                    "v": 1,
+                    "entries": [
+                        {"session_id": None, "text": "ok", "placeholder": "[REDACTED_deadbeef]"},
+                        {"session_id": None, "text": 42, "placeholder": "[REDACTED_cafebabe]"},
+                    ],
+                }
+            )
+        self.assertEqual(self.protector.export_state()["entries"], [])
+        self.assertTrue(self.protector.validate_integrity())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -2,7 +2,8 @@
  * Optional end-to-end check after applying schema.sql and signing in.
  *
  * From repo root: npm run build
- * From this folder: npm install && SUPABASE_URL=... SUPABASE_ANON_KEY=... npx tsx demo.ts
+ * From this folder:
+ *   SUPABASE_URL=... SUPABASE_ANON_KEY=... AEGIS_EXAMPLE_ENCRYPTION_PASSWORD=... npm run demo
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -12,8 +13,13 @@ import { loadEncryptedMappings, saveEncryptedMappings } from './persist-flow';
 async function main(): Promise<void> {
   const url = process.env.SUPABASE_URL;
   const anon = process.env.SUPABASE_ANON_KEY;
+  const encryptionPassword = process.env.AEGIS_EXAMPLE_ENCRYPTION_PASSWORD;
   if (!url || !anon) {
     console.error('Set SUPABASE_URL and SUPABASE_ANON_KEY');
+    process.exit(1);
+  }
+  if (!encryptionPassword) {
+    console.error('Set AEGIS_EXAMPLE_ENCRYPTION_PASSWORD (demo only; use a real secret in production)');
     process.exit(1);
   }
 
@@ -34,14 +40,14 @@ async function main(): Promise<void> {
     ownerId: user.id,
     sessionKey: 'my-chat',
     protector,
-    encryptionPassword: 'replace-with-real-secret',
+    encryptionPassword,
   });
 
   const restored = await loadEncryptedMappings({
     supabase,
     ownerId: user.id,
     sessionKey: 'my-chat',
-    encryptionPassword: 'replace-with-real-secret',
+    encryptionPassword,
   });
 
   const ph = restored.exportState().entries.find((e) => e.text === 'secret value')!.placeholder;
