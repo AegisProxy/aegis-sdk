@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- CI: GitHub Actions use **Node 24** for action runtimes (`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`, `actions/checkout@v6`, `actions/setup-node@v6`, `actions/setup-python@v6`); JS job runs tests on **Node 22**.
 - CI: pin `pytest<9` (pytest 9 requires Python ≥3.10) and require **Python ≥3.9** so `poetry-core` 2.x can build wheels; GitHub Actions matrix uses 3.9 / 3.11 / 3.12.
 
 ## [0.1.1] - 2026-03-30
