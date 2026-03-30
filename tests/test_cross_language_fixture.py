@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from aegis_sdk import AegisProtector
+from aegisproxy_sdk import AegisProtector
 
 _FIXTURE = Path(__file__).resolve().parent / "fixtures" / "export_v1.json"
 

@@ -1,7 +1,7 @@
 """Unit tests for AegisProtector class."""
 
 import unittest
-from aegis_sdk import AegisProtector
+from aegisproxy_sdk import AegisProtector
 
 
 class TestAegisProtector(unittest.TestCase):

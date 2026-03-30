@@ -4,7 +4,7 @@ import threading
 import unittest
 from typing import List
 
-from aegis_sdk import AegisProtector
+from aegisproxy_sdk import AegisProtector
 
 
 class TestThreadSafety(unittest.TestCase):

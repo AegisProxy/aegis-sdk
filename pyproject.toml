@@ -1,6 +1,6 @@
 [project]
-name = "aegis-sdk"
-version = "0.1.1"
+name = "aegisproxy-sdk"
+version = "0.2.0"
 description = "A universal Python and JavaScript library for building privacy-preserving AI applications"
 authors = [
     {name = "AegisProxy",email = "info@aegisproxy.com"}
@@ -28,17 +28,16 @@ Changelog = "https://github.com/AegisProxy/aegis-sdk/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
-    # pytest 9+ requires Python >=3.10; CI tests 3.9 as well
     "pytest>=7.0.0,<9",
 ]
 
 [tool.poetry]
-name = "aegis-sdk"
-version = "0.1.1"
+name = "aegisproxy-sdk"
+version = "0.2.0"
 description = "A universal Python and JavaScript library for building privacy-preserving AI applications"
 authors = ["AegisProxy <info@aegisproxy.com>"]
 readme = "README.md"
-packages = [{include = "aegis_sdk"}]
+packages = [{include = "aegisproxy_sdk"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"

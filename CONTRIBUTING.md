@@ -46,7 +46,7 @@ If you change how placeholders are computed or how `export_state` / `import_stat
 
    ```bash
    PYTHONPATH=. python3 -c "
-   from aegis_sdk import AegisProtector
+   from aegisproxy_sdk import AegisProtector
    import json
    p = AegisProtector()
    p.redact('cross-language-fixture-value', entity_type='email', session_id='fixture-sess')
@@ -67,7 +67,7 @@ If you change how placeholders are computed or how `export_state` / `import_stat
 ## Code style
 
 - **TypeScript:** match existing formatting and patterns in `src/`.
-- **Python:** match existing patterns in `aegis_sdk/`; prefer explicit types where the module already uses them.
+- **Python:** match existing patterns in `aegisproxy_sdk/`; prefer explicit types where the module already uses them.
 
 ## Publishing (maintainers)
 

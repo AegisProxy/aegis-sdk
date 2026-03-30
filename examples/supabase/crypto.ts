@@ -1,6 +1,6 @@
 /**
  * Browser / Node 18+ (Web Crypto). Encrypt JSON payloads with AES-GCM.
- * Use with exportState() from aegis-sdk; store { saltB64, ivB64, ciphertextB64 } in Supabase.
+ * Use with exportState() from @aegisproxy/aegis-sdk; store { saltB64, ivB64, ciphertextB64 } in Supabase.
  */
 
 const enc = new TextEncoder();

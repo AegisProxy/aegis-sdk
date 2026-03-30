@@ -2,6 +2,8 @@
 
 A universal Python and JavaScript/TypeScript library for building privacy-preserving AI applications. Embed Aegis security directly into your app.
 
+**Install names:** PyPI / pip **`aegisproxy-sdk`** (import `aegisproxy_sdk`) · npm **`@aegisproxy/aegis-sdk`**. The GitHub repo remains [AegisProxy/aegis-sdk](https://github.com/AegisProxy/aegis-sdk).
+
 [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
 ## Features
@@ -77,24 +79,24 @@ Requires **Python 3.9+** (build uses `poetry-core` 2.x).
 
 Using Poetry:
 ```bash
-poetry add aegis-sdk
+poetry add aegisproxy-sdk
 ```
 
 Using pip:
 ```bash
-pip install aegis-sdk
+pip install aegisproxy-sdk
 ```
 
 ### JavaScript/TypeScript
 
-Using npm:
+Scoped package on npm:
+
 ```bash
-npm install aegis-sdk
+npm install @aegisproxy/aegis-sdk
 ```
 
-Using yarn:
 ```bash
-yarn add aegis-sdk
+yarn add @aegisproxy/aegis-sdk
 ```
 
 ## Usage
@@ -102,7 +104,7 @@ yarn add aegis-sdk
 ### Python
 
 ```python
-from aegis_sdk import AegisProtector
+from aegisproxy_sdk import AegisProtector
 
 # Create a protector instance
 protector = AegisProtector()
@@ -137,7 +139,7 @@ print(is_valid)  # Output: True
 ### TypeScript/JavaScript
 
 ```typescript
-import { AegisProtector } from 'aegis-sdk';
+import { AegisProtector } from '@aegisproxy/aegis-sdk';
 
 // Create a protector instance
 const protector = new AegisProtector();
@@ -295,7 +297,7 @@ poetry install
 poetry run pytest tests/ -v
 
 # Run tests with coverage
-poetry run pytest tests/ --cov=aegis_sdk
+poetry run pytest tests/ --cov=aegisproxy_sdk
 ```
 
 ### TypeScript Development
@@ -319,9 +321,11 @@ npm run test:watch
 
 ## Publishing
 
-Versions are tracked in `package.json`, `pyproject.toml` (`[project]` and `[tool.poetry]`), and `aegis_sdk.__version__` / `version` export in TypeScript—keep them aligned when releasing. Document changes in [CHANGELOG.md](CHANGELOG.md).
+Versions are tracked in `package.json`, `pyproject.toml` (`[project]` and `[tool.poetry]`), and `aegisproxy_sdk.__version__` / `version` export in TypeScript—keep them aligned when releasing. Document changes in [CHANGELOG.md](CHANGELOG.md).
 
 ### npm
+
+The package is **scoped** (`@aegisproxy/aegis-sdk`). `package.json` includes `"publishConfig": { "access": "public" }` so the first publish does not default to private.
 
 ```bash
 npm run build
@@ -329,7 +333,7 @@ npm pack   # optional: inspect tarball
 npm publish --access public
 ```
 
-Ensure you are logged in (`npm whoami`) and the version was bumped. `prepublishOnly` runs `npm run build`.
+Ensure you are logged in (`npm whoami`), have rights to the `@aegisproxy` org on npm, and the version was bumped. `prepublishOnly` runs `npm run build`.
 
 ### PyPI (pip / Poetry)
 

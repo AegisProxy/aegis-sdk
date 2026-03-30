@@ -1,6 +1,6 @@
 {
-  "name": "aegis-sdk",
-  "version": "0.1.1",
+  "name": "@aegisproxy/aegis-sdk",
+  "version": "0.2.0",
   "description": "A universal Python and JavaScript library for building privacy-preserving AI applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,10 +20,14 @@
     "ai",
     "security",
     "redaction",
-    "data-protection"
+    "data-protection",
+    "aegisproxy"
   ],
   "author": "AegisProxy",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "https://github.com/AegisProxy/aegis-sdk/issues"
   },

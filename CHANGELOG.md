@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-30
+
+### Changed (breaking)
+
+- **npm:** package name is **`@aegisproxy/aegis-sdk`** (scoped, `publishConfig.access: public`). Replace `aegis-sdk` / `from 'aegis-sdk'` with `@aegisproxy/aegis-sdk`.
+- **PyPI:** distribution name is **`aegisproxy-sdk`**. Replace `pip install aegis-sdk` / `poetry add aegis-sdk` with **`aegisproxy-sdk`**.
+- **Python import path:** top-level package directory is **`aegisproxy_sdk`**. Replace `from aegis_sdk import ...` with `from aegisproxy_sdk import ...`.
+
+The GitHub repository URL is unchanged (`AegisProxy/aegis-sdk` serves only as the source repo).
+
 ### Changed
 
 - TypeScript `AegisProtector` uses **`@noble/hashes`** for SHA-256 instead of Node `crypto`, so the same logic runs in **browsers** and **extensions** (e.g. [aegis-shield](https://github.com/AegisProxy/aegis-shield)).

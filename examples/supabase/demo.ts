@@ -7,7 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { AegisProtector } from 'aegis-sdk';
+import { AegisProtector } from '@aegisproxy/aegis-sdk';
 import { loadEncryptedMappings, saveEncryptedMappings } from './persist-flow';
 
 async function main(): Promise<void> {

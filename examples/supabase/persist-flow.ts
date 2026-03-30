@@ -10,7 +10,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { AegisProtector, type AegisExportedStateV1 } from 'aegis-sdk';
+import { AegisProtector, type AegisExportedStateV1 } from '@aegisproxy/aegis-sdk';
 import { decryptJson, encryptJson } from './crypto';
 
 export async function saveEncryptedMappings(params: {
