@@ -6,9 +6,59 @@ A universal Python and JavaScript/TypeScript library for building privacy-preser
 
 - **Dual-Language Support**: Available for both Python and TypeScript/JavaScript
 - **Redact/Unredact**: Protect sensitive information with consistent placeholders
-- **Referential Integrity**: The same text always maps to the same placeholder
+- **Referential Integrity**: The same text always maps to the same placeholder (within the same optional session scope)
+- **Optional session scope**: Pass a session id so parallel chats/requests stay isolated in one `AegisProtector` instance
 - **Integrity Validation**: Built-in validation to ensure mapping consistency
 - **Type Safety**: Full TypeScript support with type definitions
+
+## Guarantees, concurrency, and sessions
+
+**What the SDK guarantees**
+
+- Mappings live **in memory** on the `AegisProtector` instance you hold. Correct `unredact` requires the **same** instance (or equivalent state you restored) that produced the placeholders.
+- `validate_integrity()` / `validateIntegrity()` checks that forward and reverse maps stay consistent **inside that instance**. It does not prove anything across processes or databases.
+
+**Threading and async (Python)**
+
+- The default implementation is **not** thread-safe. If multiple threads use the **same** `AegisProtector`, synchronize access (e.g. one lock around `redact` / `unredact`) or use **one instance per task / request**.
+- Alternatively, use **one process per flow** or a **single worker** that owns redaction.
+
+**Many workers or machines**
+
+- Each process has its own memory. Placeholders from worker A are meaningless on worker B unless you **share** mapping state (see below) or keep redact and unredact on the **same** worker for a given user session (sticky routing).
+
+**`session_id` (parallel logical flows)**
+
+- Pass an optional **`session_id`** (e.g. chat id, request id, tenant-scoped key) to **`redact`**. The same plaintext in **different** sessions gets **different** placeholders; within one session, referential integrity behaves as before.
+- **`unredact`** still takes only the placeholder—the session id is encoded in how the placeholder was chosen, so you do not pass session id again.
+- This helps when **one long-lived process** handles **many concurrent sessions** through a **single** protector: sessions do not collide on the same token for the same string.
+- It does **not** replace a database: if another process must unredact, that process still needs the **same mapping data** (in-memory copy, or encrypted blob below).
+
+## Database-backed flows and client-side encryption
+
+For horizontal scale, you can persist mapping state per `session_id` (or per job) in a store such as **Supabase**, **Postgres**, or **Redis**.
+
+**Recommended pattern (server-blind storage)**
+
+The database should store **only what the server cannot turn into plaintext** without your app’s keys:
+
+1. On the client or in your app tier, **encrypt** the sensitive payload (e.g. JSON of `{ placeholder → ciphertext }` or a single blob of mapping data) with a key derived from material **held outside** the row (user password, device key, KMS, or a secret in your backend env—not the anon key in the browser for high assurance).
+2. **Upload** the **ciphertext** (and optional non-secret metadata: `session_id`, `updated_at`, size).
+3. To unredact later: **fetch** the row, **decrypt** locally, **rehydrate** mappings or run `unredact` against placeholders using that state.
+
+This is often described as **end-to-end from the database’s perspective** (the DB operator sees ciphertext only). It is **not** the same thing as a formal **zero-knowledge proof** system; the SDK does not implement ZK proofs—it leaves **crypto and key management** to your application.
+
+**Hashes are not enough for round-trip:** A one-way **hash** of plaintext cannot be “unredacted.” To reconstruct originals later, persist **authenticated ciphertext** (or an encrypted serialization of the mapping), not a hash alone. You can still store a **hash of the ciphertext** for deduplication or integrity checks if you want.
+
+**Does the SDK talk to Supabase?**
+
+- **No.** This package stays small and dependency-free. You wire insert/select and encryption in your app. The README describes the pattern; your code chooses algorithms (e.g. AES-GCM via Web Crypto or libsodium) and key derivation.
+
+**Authentication (e.g. Supabase)**
+
+- The SDK does **not** perform auth. If you use **Supabase Auth** and the **Supabase client** with the user’s **JWT**, **Row Level Security (RLS)** can restrict rows so only that user (or their session) can read ciphertext for their `session_id`.
+- You still **must** care about auth in the sense of **policy**: a **service role** key bypasses RLS—use it only on trusted servers. **Anon** + RLS is appropriate for user-scoped data; never expose service role to the browser.
+- “Already authenticated by Supabase” is enough **for who may read which row**; it does **not** by itself encrypt payloads—you add client-side or app-side encryption if the database must not see plaintext.
 
 ## Installation
 
@@ -56,6 +106,10 @@ email = "john@example.com"
 email_placeholder = protector.redact(email, entity_type="email")
 print(email_placeholder)  # Output: [REDACTED_EMAIL_e5f6g7h8]
 
+# Optional session id: same string in different sessions → different placeholders
+p1 = protector.redact("Acme", session_id="chat-a")
+p2 = protector.redact("Acme", session_id="chat-b")
+
 # Unredact to get original text
 original = protector.unredact(placeholder)
 print(original)  # Output: John Doe
@@ -87,6 +141,10 @@ const email = "john@example.com";
 const emailPlaceholder = protector.redact(email, "email");
 console.log(emailPlaceholder);  // Output: [REDACTED_EMAIL_e5f6g7h8]
 
+// Optional third argument: session id (use undefined if you only pass entity type)
+const p1 = protector.redact("Acme", undefined, "chat-a");
+const p2 = protector.redact("Acme", undefined, "chat-b");
+
 // Unredact to get original text
 const original = protector.unredact(placeholder);
 console.log(original);  // Output: John Doe
@@ -104,24 +162,34 @@ console.log(isValid);  // Output: true
 
 ### AegisProtector
 
-#### `redact(text: string, entityType?: string): string`
+#### `redact` — Python
 
-Redacts sensitive information and returns a consistent placeholder.
+`redact(text, entity_type=None, session_id=None) -> str`
 
 **Parameters:**
 - `text`: The sensitive text to redact
-- `entityType` (optional): Type of entity (e.g., 'name', 'email', 'ssn')
+- `entity_type` (optional): Type of entity (e.g., `'name'`, `'email'`, `'ssn'`)
+- `session_id` (optional): Logical scope (e.g. chat or request id). Same `text` in different sessions yields different placeholders when using one shared `AegisProtector`.
 
 **Returns:** A placeholder string that can be used to unredact the text later
 
-**Example:**
+**Examples:**
 ```python
-# Python
 placeholder = protector.redact("sensitive data", entity_type="custom")
+placeholder = protector.redact("sensitive data", session_id="req-123")
+placeholder = protector.redact("sensitive data", entity_type="custom", session_id="req-123")
 ```
+
+#### `redact` — TypeScript
+
+`redact(text: string, entityType?: string, sessionId?: string): string`
+
+Same semantics as Python. If you need only `sessionId`, pass `undefined` for `entityType`: `redact(text, undefined, sessionId)`.
+
+**Example:**
 ```typescript
-// TypeScript
-const placeholder = protector.redact("sensitive data", "custom");
+const placeholder = protector.redact('sensitive data', 'custom');
+const scoped = protector.redact('sensitive data', undefined, 'req-123');
 ```
 
 #### `unredact(placeholder: string): string`
@@ -163,7 +231,7 @@ const isValid = protector.validateIntegrity();
 
 ## Referential Integrity
 
-The AegisProtector ensures referential integrity by always mapping the same input text to the same placeholder. This is crucial for maintaining consistency across your application:
+Within a single **session scope** (default: one global scope when `session_id` is omitted), the same input text maps to the same placeholder. That keeps model-facing text consistent (e.g. one token for the same person).
 
 ```python
 # Python example
@@ -179,6 +247,15 @@ assert p1 == p2 == p3
 
 # All unredact to the same original value
 assert protector.unredact(p1) == protector.unredact(p2) == "Alice"
+```
+
+With **`session_id`**, the same string in two sessions is intentionally **not** the same placeholder:
+
+```python
+a = protector.redact("Alice", session_id="chat-1")
+b = protector.redact("Alice", session_id="chat-2")
+assert a != b
+assert protector.unredact(a) == protector.unredact(b) == "Alice"
 ```
 
 ## Development

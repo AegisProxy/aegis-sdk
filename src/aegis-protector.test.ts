@@ -93,6 +93,24 @@ describe('AegisProtector', () => {
       expect(protector.unredact(placeholder2)).toBe(email);
     });
 
+    it('should isolate same plaintext across session ids', () => {
+      const text = 'Acme Corp';
+      const pA = protector.redact(text, undefined, 'sess-a');
+      const pB = protector.redact(text, undefined, 'sess-b');
+      expect(pA).not.toBe(pB);
+      expect(protector.unredact(pA)).toBe(text);
+      expect(protector.unredact(pB)).toBe(text);
+      expect(protector.validateIntegrity()).toBe(true);
+    });
+
+    it('should reuse placeholder for same text within one session', () => {
+      const text = 'Alice';
+      const sid = 'chat-1';
+      expect(protector.redact(text, undefined, sid)).toBe(
+        protector.redact(text, undefined, sid),
+      );
+    });
+
     it('should handle multiple redactions with unredactions', () => {
       const texts = ['Alice', 'Bob', 'Charlie', 'Alice', 'Bob'];
       const placeholders = texts.map(text => protector.redact(text));

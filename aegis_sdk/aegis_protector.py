@@ -1,7 +1,7 @@
 """AegisProtector class for redacting and unredacting sensitive information."""
 
 import hashlib
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 
 class AegisProtector:
@@ -9,10 +9,19 @@ class AegisProtector:
 
     def __init__(self):
         """Initialize the AegisProtector with empty mappings."""
-        self._mapping: Dict[str, str] = {}
+        self._mapping: Dict[Tuple[str, str], str] = {}
         self._reverse_mapping: Dict[str, str] = {}
 
-    def redact(self, text: str, entity_type: Optional[str] = None) -> str:
+    @staticmethod
+    def _session_key(session_id: Optional[str]) -> str:
+        return session_id if session_id is not None else ""
+
+    def redact(
+        self,
+        text: str,
+        entity_type: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> str:
         """
         Redact sensitive information in text with a consistent placeholder.
         
@@ -22,25 +31,30 @@ class AegisProtector:
         Args:
             text: The sensitive text to redact
             entity_type: Optional type of entity (e.g., 'name', 'email', 'ssn')
-        
+            session_id: Optional logical session (e.g. chat or request id). Same text
+                in different sessions gets different placeholders so parallel flows
+                stay isolated in one protector instance.
+
         Returns:
             A placeholder string that can be used to unredact the text later
         """
-        if text in self._mapping:
-            return self._mapping[text]
-        
-        # Generate a deterministic placeholder based on the text
-        # This ensures the same text always gets the same placeholder
-        text_hash = hashlib.sha256(text.encode()).hexdigest()[:8]
+        sk = self._session_key(session_id)
+        forward_key = (sk, text)
+        if forward_key in self._mapping:
+            return self._mapping[forward_key]
+
+        # Hash includes session so identical text in different sessions diverges
+        digest_input = f"{sk}\0{text}".encode()
+        text_hash = hashlib.sha256(digest_input).hexdigest()[:8]
         
         if entity_type:
             placeholder = f"[REDACTED_{entity_type.upper()}_{text_hash}]"
         else:
             placeholder = f"[REDACTED_{text_hash}]"
         
-        self._mapping[text] = placeholder
+        self._mapping[forward_key] = placeholder
         self._reverse_mapping[placeholder] = text
-        
+
         return placeholder
 
     def unredact(self, placeholder: str) -> str:
@@ -78,17 +92,21 @@ class AegisProtector:
             return False
         
         # Check that all forward mappings have corresponding reverse mappings
-        for text, placeholder in self._mapping.items():
+        for forward_key, placeholder in self._mapping.items():
             if placeholder not in self._reverse_mapping:
                 return False
+            _, text = forward_key
             if self._reverse_mapping[placeholder] != text:
                 return False
-        
+
         # Check that all reverse mappings have corresponding forward mappings
         for placeholder, text in self._reverse_mapping.items():
-            if text not in self._mapping:
-                return False
-            if self._mapping[text] != placeholder:
+            found = False
+            for (sk, t), ph in self._mapping.items():
+                if ph == placeholder and t == text:
+                    found = True
+                    break
+            if not found:
                 return False
         
         return True

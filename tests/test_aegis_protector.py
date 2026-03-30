@@ -118,6 +118,25 @@ class TestAegisProtector(unittest.TestCase):
         self.assertEqual(self.protector.unredact(placeholder1), email)
         self.assertEqual(self.protector.unredact(placeholder2), email)
 
+    def test_session_id_isolates_same_plaintext(self):
+        """Same text in different sessions gets different placeholders."""
+        text = "Acme Corp"
+        p_a = self.protector.redact(text, session_id="sess-a")
+        p_b = self.protector.redact(text, session_id="sess-b")
+        self.assertNotEqual(p_a, p_b)
+        self.assertEqual(self.protector.unredact(p_a), text)
+        self.assertEqual(self.protector.unredact(p_b), text)
+        self.assertTrue(self.protector.validate_integrity())
+
+    def test_session_id_consistency_within_session(self):
+        """Same text and session reuses one placeholder."""
+        text = "Alice"
+        sid = "chat-1"
+        self.assertEqual(
+            self.protector.redact(text, session_id=sid),
+            self.protector.redact(text, session_id=sid),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
