@@ -9,6 +9,7 @@ A universal Python and JavaScript/TypeScript library for building privacy-preser
 - **Referential Integrity**: The same text always maps to the same placeholder (within the same optional session scope)
 - **Optional session scope**: Pass a session id so parallel chats/requests stay isolated in one `AegisProtector` instance
 - **Integrity Validation**: Built-in validation to ensure mapping consistency
+- **Export / import**: Serialize mappings (v1 JSON) for encrypted storage or multi-worker reload
 - **Type Safety**: Full TypeScript support with type definitions
 
 ## Guarantees, concurrency, and sessions
@@ -53,6 +54,8 @@ This is often described as **end-to-end from the database’s perspective** (the
 **Does the SDK talk to Supabase?**
 
 - **No.** This package stays small and dependency-free. You wire insert/select and encryption in your app. The README describes the pattern; your code chooses algorithms (e.g. AES-GCM via Web Crypto or libsodium) and key derivation.
+
+**Example project:** See [examples/supabase](examples/supabase/) for SQL (RLS), AES-GCM helpers, and `saveEncryptedMappings` / `loadEncryptedMappings` built on `exportState` / `importState`.
 
 **Authentication (e.g. Supabase)**
 
@@ -228,6 +231,17 @@ is_valid = protector.validate_integrity()
 // TypeScript
 const isValid = protector.validateIntegrity();
 ```
+
+#### `export_state()` / `import_state(data)` (Python) · `exportState()` / `importState(data)` (TypeScript)
+
+Serialize and restore all mappings for persistence (e.g. encrypt the JSON, store in Supabase, decrypt later on another worker).
+
+- **Python:** `export_state() -> dict`, `import_state(data: dict) -> None`
+- **TypeScript:** `exportState()` returns `AegisExportedStateV1`; `importState(data)` accepts the same shape
+
+**v1 JSON** uses snake_case (`session_id`, `text`, `placeholder`) so Python and TypeScript produce blobs you can use interchangeably.
+
+**Raises:** `ValueError` / `Error` if the payload is the wrong version, malformed, or fails integrity validation after load.
 
 ## Referential Integrity
 

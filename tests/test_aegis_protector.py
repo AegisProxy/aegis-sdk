@@ -137,6 +137,17 @@ class TestAegisProtector(unittest.TestCase):
             self.protector.redact(text, session_id=sid),
         )
 
+    def test_export_import_roundtrip(self):
+        """export_state / import_state preserves redact-unredact behavior."""
+        self.protector.redact("a", session_id="s1")
+        self.protector.redact("b", entity_type="email", session_id="s2")
+        blob = self.protector.export_state()
+        other = AegisProtector()
+        other.import_state(blob)
+        self.assertTrue(other.validate_integrity())
+        ph = other.redact("a", session_id="s1")
+        self.assertEqual(other.unredact(ph), "a")
+
 
 if __name__ == "__main__":
     unittest.main()

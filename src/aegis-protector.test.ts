@@ -129,6 +129,19 @@ describe('AegisProtector', () => {
     });
   });
 
+  describe('exportState / importState', () => {
+    it('roundtrips mappings', () => {
+      protector.redact('a', undefined, 's1');
+      protector.redact('b', 'email', 's2');
+      const blob = protector.exportState();
+      const other = new AegisProtector();
+      other.importState(blob);
+      expect(other.validateIntegrity()).toBe(true);
+      const ph = other.redact('a', undefined, 's1');
+      expect(other.unredact(ph)).toBe('a');
+    });
+  });
+
   describe('validateIntegrity', () => {
     it('should validate integrity with valid mappings', () => {
       // Add some redactions

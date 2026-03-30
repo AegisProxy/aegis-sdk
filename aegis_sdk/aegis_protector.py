@@ -1,7 +1,7 @@
 """AegisProtector class for redacting and unredacting sensitive information."""
 
 import hashlib
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class AegisProtector:
@@ -110,3 +110,66 @@ class AegisProtector:
                 return False
         
         return True
+
+    def export_state(self) -> Dict[str, Any]:
+        """
+        Snapshot mappings for persistence (e.g. encrypt and store per session).
+
+        Returns:
+            A JSON-serializable dict with version and entries. Use import_state()
+            after decrypting the same payload to rehydrate this instance.
+        """
+        entries: List[Dict[str, Any]] = []
+        for (sk, text), placeholder in self._mapping.items():
+            entries.append(
+                {
+                    "session_id": sk if sk != "" else None,
+                    "text": text,
+                    "placeholder": placeholder,
+                }
+            )
+        return {"v": 1, "entries": entries}
+
+    def import_state(self, data: Dict[str, Any]) -> None:
+        """
+        Replace mappings from export_state() output. Validates structure and
+        integrity before committing.
+
+        Args:
+            data: Dict matching export_state() format
+
+        Raises:
+            ValueError: If version or entries are invalid or integrity check fails
+        """
+        if not isinstance(data, dict) or data.get("v") != 1:
+            raise ValueError("import_state requires data with v == 1")
+        raw_entries = data.get("entries")
+        if not isinstance(raw_entries, list):
+            raise ValueError("import_state entries must be a list")
+
+        self._mapping.clear()
+        self._reverse_mapping.clear()
+
+        for i, e in enumerate(raw_entries):
+            if not isinstance(e, dict):
+                raise ValueError(f"import_state entry {i} must be an object")
+            text = e.get("text")
+            placeholder = e.get("placeholder")
+            if not isinstance(text, str) or not isinstance(placeholder, str):
+                raise ValueError(f"import_state entry {i} needs str text and placeholder")
+            sid = e.get("session_id")
+            if sid is not None and not isinstance(sid, str):
+                raise ValueError(f"import_state entry {i} session_id must be str or null")
+            sk = self._session_key(sid)
+            forward_key = (sk, text)
+            if forward_key in self._mapping:
+                raise ValueError(f"import_state duplicate forward key at entry {i}")
+            if placeholder in self._reverse_mapping:
+                raise ValueError(f"import_state duplicate placeholder at entry {i}")
+            self._mapping[forward_key] = placeholder
+            self._reverse_mapping[placeholder] = text
+
+        if not self.validate_integrity():
+            self._mapping.clear()
+            self._reverse_mapping.clear()
+            raise ValueError("imported state failed integrity validation")
