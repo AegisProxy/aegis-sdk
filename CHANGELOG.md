@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- TypeScript `AegisProtector` uses **`@noble/hashes`** for SHA-256 instead of Node `crypto`, so the same logic runs in **browsers** and **extensions** (e.g. [aegis-shield](https://github.com/AegisProxy/aegis-shield)).
+
 ### Fixed
 
 - Stop tracking **Jest `coverage/`** output (HTML/CSS/JS reports); add to `.gitignore` so GitHub language stats reflect the SDK, not generated reports.

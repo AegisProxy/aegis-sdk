@@ -2,7 +2,12 @@
  * AegisProtector class for redacting and unredacting sensitive information.
  */
 
-import * as crypto from 'crypto';
+import { sha256 } from '@noble/hashes/sha256';
+import { bytesToHex, utf8ToBytes } from '@noble/hashes/utils';
+
+function sha256HexPrefix8(utf8String: string): string {
+  return bytesToHex(sha256(utf8ToBytes(utf8String))).slice(0, 8);
+}
 
 function sessionKey(sessionId: string | undefined): string {
   return sessionId ?? '';
@@ -47,7 +52,7 @@ export class AegisProtector {
 
     const sk = sessionKey(sessionId);
     const digestInput = `${sk}\0${text}`;
-    const hash = crypto.createHash('sha256').update(digestInput, 'utf8').digest('hex').substring(0, 8);
+    const hash = sha256HexPrefix8(digestInput);
 
     const placeholder = entityType
       ? `[REDACTED_${entityType.toUpperCase()}_${hash}]`
